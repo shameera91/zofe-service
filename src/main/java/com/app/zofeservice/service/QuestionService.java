@@ -10,4 +10,6 @@ import java.util.List;
 public interface QuestionService {
 
     List<Question> getAllQuestions();  /* replace with output dto*/
+
+    Question getQuestionById(int questionIdx);
 }

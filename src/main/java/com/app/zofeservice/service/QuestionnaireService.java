@@ -9,6 +9,6 @@ import java.util.List;
  */
 public interface QuestionnaireService {
 
-    List<CandidateOutputDTO> getMatchingClientsByAnswerIndex(String searchQuery);
+    List<CandidateOutputDTO> getMatchingCandidatesByAnswerIndex(String searchQuery);
 
 }
