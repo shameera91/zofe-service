@@ -21,11 +21,22 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
     }
 
     @Override
-    public List<CandidateOutputDTO> getMatchingClientsByAnswerIndex(int idx) {
+    public List<CandidateOutputDTO> getMatchingClientsByAnswerIndex(String searchQuery) {
 
-        List<QuestionnaireAnswers> matchingResult = questionnaireAnswerRepository.getMatchingEmployeeByAnswerIndex(idx);
-        /*setting the data to be sent to front end*/
-        /*match level*/
+        /*   example searchQuery     String searchQuery = "1:1,2:3"     */
+
+        /* what I m thinking is , from from end we are passing , question id and answer which
+        * the employer is picking .
+        *
+        * in here we have to separate into parts ,  by using java String class functions
+        *
+        * after that , we have to do the filtering part.
+        *
+        * which is I m still thinking
+        *
+        * */
+
+
         return null;
     }
 }

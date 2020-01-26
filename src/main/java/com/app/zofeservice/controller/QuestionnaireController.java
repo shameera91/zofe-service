@@ -22,7 +22,7 @@ public class QuestionnaireController {
     }
 
     @GetMapping("/employee-mapping")
-    public ResponseEntity<?> getMatchingClientsByAnswerIndex(@RequestParam int idx) {
-        return ResponseEntity.ok(questionnaireService.getMatchingClientsByAnswerIndex(idx));
+    public ResponseEntity<?> getMatchingClientsByAnswerIndex(@RequestParam String searchQuery) {
+        return ResponseEntity.ok(questionnaireService.getMatchingClientsByAnswerIndex(searchQuery));
     }
 }

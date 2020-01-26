@@ -34,7 +34,8 @@ public class QuestionnaireAnswers extends Auditable<String> {
     @ManyToOne
     private Question question;
 
-    private int answerIndex;
+    @ManyToOne
+    private Answer employeeAnswer;
 
     @ManyToOne
     private Employee employee;

@@ -11,7 +11,6 @@ import java.util.List;
  */
 public interface QuestionnaireAnswerRepository extends JpaRepository<QuestionnaireAnswers,Long> {
 
-    @Query("SELECT a FROM QuestionnaireAnswers a WHERE a.answerIndex >= ?1")
-    List<QuestionnaireAnswers> getMatchingEmployeeByAnswerIndex(int filterIndex);
+
 
 }

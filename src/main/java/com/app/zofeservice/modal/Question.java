@@ -10,7 +10,12 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import java.util.List;
 
 /**
  * Created By Shameera.A on 1/24/2020
@@ -29,5 +34,7 @@ public class Question extends Auditable<String> {
 
     private String question;
 
-    private Answer[] answers;
+    @OneToMany
+    @JoinTable(name = "q_and_a",joinColumns = @JoinColumn(name = "question_id"),inverseJoinColumns = @JoinColumn(name = "answer_id"))
+    private List<Answer> answers;
 }
