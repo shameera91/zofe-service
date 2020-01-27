@@ -11,9 +11,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.util.Map;
 
 /**
  * Created By Shameera.A on 1/24/2020
@@ -34,8 +32,10 @@ public class QuestionnaireAnswers extends Auditable<String> {
     @ManyToOne
     private Question question;
 
-    @ManyToOne
-    private Answer employeeAnswer;
+    /*@ManyToOne
+    private Answer employeeAnswer;*/
+
+    private int empAnswerScore;
 
     @ManyToOne
     private Employee employee;

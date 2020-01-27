@@ -1,6 +1,7 @@
 package com.app.zofeservice.modal;
 
 import com.app.zofeservice.common.audit.Auditable;
+import com.app.zofeservice.dto.EmployeeOutputDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -32,4 +33,8 @@ public class Employee extends Auditable<String> {
     private String phone;
 
     private String email;
+
+    public EmployeeOutputDTO viewEmployeeDetails(){
+        return new EmployeeOutputDTO(id,name,phone,email);
+    }
 }

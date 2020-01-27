@@ -1,14 +1,23 @@
 package com.app.zofeservice.service.impl;
 
 import com.app.zofeservice.dto.CandidateOutputDTO;
+import com.app.zofeservice.exception.ResourceNotFoundException;
 import com.app.zofeservice.modal.Employee;
 import com.app.zofeservice.repository.EmployerRepository;
 import com.app.zofeservice.repository.QuestionnaireAnswerRepository;
 import com.app.zofeservice.service.QuestionService;
 import com.app.zofeservice.service.QuestionnaireService;
+import com.google.common.collect.Lists;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created By Shameera.A on 1/25/2020
@@ -18,12 +27,13 @@ import java.util.*;
 public class QuestionnaireServiceImpl implements QuestionnaireService {
     private static final int MINIMAL_RESULTS_SIZE = 10;
     private static final int FACTOR_REDUCTION_ON_MORE = 2;
-    private static final double FACTOR_MULTIPICATION_ON_LESS = 0.8;
+    private static final double FACTOR_MULTIPLICATION_ON_LESS = 0.8;
     private final QuestionnaireAnswerRepository questionnaireAnswerRepository;
     private final QuestionService questionService;
     private final EmployerRepository employerRepository;
 
-    public QuestionnaireServiceImpl(QuestionnaireAnswerRepository questionnaireAnswerRepository, QuestionService questionService, EmployerRepository employerRepository) {
+    public QuestionnaireServiceImpl(QuestionnaireAnswerRepository questionnaireAnswerRepository,
+                                    QuestionService questionService, EmployerRepository employerRepository) {
         this.questionnaireAnswerRepository = questionnaireAnswerRepository;
         this.questionService = questionService;
         this.employerRepository = employerRepository;
@@ -32,85 +42,86 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
     @Override
     public List<CandidateOutputDTO> getMatchingCandidatesByAnswerIndex(String searchQuery) {
 
-        /*   example searchQuery*/
-        String searchQuery1 = "1:1,2:3";
-
-
-        /* what I m thinking is , from from end we are passing , question id and answer which
-         * the employer is picking .
-         *
-         * in here we have to separate into parts ,  by using java String class functions
-         *
-         * after that , we have to do the filtering part.
-         *
-         * which is I m still thinking
-         *
-         * */
-
-        //repository get all candidates
-
-        Map<Integer, Integer> questionList = getQuestionsBySearchString(searchQuery1);
+        Map<Long, Integer> questionList = getQuestionsBySearchString(searchQuery);
         List<Employee> fittingEmployees = getAllFittingCandidates(questionList);
 
         if (fittingEmployees.size() >= MINIMAL_RESULTS_SIZE) {
             return getCandidateOutputDTOs(fittingEmployees);
         }
 
-        List<CandidateOutputDTO> dtos = getCandidateOutputDTOs(fittingEmployees);
+        /*Should fix adding same employee twice*/
 
-        dtos.addAll(getNonFittingEmployeesByRank(questionList));
-
-        return dtos;
+        List<CandidateOutputDTO> candidateOutput = getCandidateOutputDTOs(fittingEmployees);
+        List<CandidateOutputDTO> nonFittingEmployeesByRank = getNonFittingEmployeesByRank(questionList);
+        nonFittingEmployeesByRank.removeAll(candidateOutput);
+        candidateOutput.addAll(nonFittingEmployeesByRank);
+        return candidateOutput;
     }
 
-    private Collection<? extends CandidateOutputDTO> getNonFittingEmployeesByRank(Map<Integer, Integer> questionList) {
+    private List<Employee> getAllFittingCandidates(Map<Long, Integer> questionList) {
+        List<List<Employee>> matchPerQuestion = new ArrayList<>();
+        for (Long questionId : questionList.keySet()) {
+            List<Employee> result = questionnaireAnswerRepository
+                    .getAllFittingCandidate(questionId, questionList.get(questionId));
+            matchPerQuestion.add(result);
+        }
+        Set<Employee> commonElements = getCommonElements(matchPerQuestion);
+        return Lists.newArrayList(commonElements);
+    }
+
+    private List<CandidateOutputDTO> getNonFittingEmployeesByRank(Map<Long, Integer> questionList) {
+        List<CandidateOutputDTO> result = new ArrayList<>();
         List<Employee> allEmployees = employerRepository.findAll();
         for (Employee employee : allEmployees) {
             int level = 100;
-            for (Integer questionIdx : questionList.keySet()) {
-
-                int userAns = questionnaireAnswerRepository.getQuestionAnswer(employee, questionIdx);
-                if (userAns > questionList.get(questionIdx)) {
+            for (Long questionId : questionList.keySet()) {
+                Integer userAns = questionnaireAnswerRepository
+                        .getQuestionAnswer(questionId, employee.getId()).orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
+                if (userAns > questionList.get(questionId)) {
                     level -= FACTOR_REDUCTION_ON_MORE;
                 } else {
-                    if (userAns < questionList.get(questionIdx)) {
-                        level = (int) (level * FACTOR_MULTIPICATION_ON_LESS);
+                    if (userAns < questionList.get(questionId)) {
+                        level = (int) (level * FACTOR_MULTIPLICATION_ON_LESS);
                     }
                 }
             }
-            CandidateOutputDTO dto = new CandidateOutputDTO(level, null, employee);
+            CandidateOutputDTO outputDto = new CandidateOutputDTO(level, "", employee.viewEmployeeDetails());
+            result.add(outputDto);
         }
-        return null;
+        return result;
     }
 
     private List<CandidateOutputDTO> getCandidateOutputDTOs(List<Employee> fittingEmployees) {
-        //TODO: implement
-        return null;
-    }
-
-    private List<Employee> getAllFittingCandidates(Map<Integer, Integer> questionList) {
-        StringBuilder query = new StringBuilder("select distinct employee from QuestionnaireAnswers where 1=1 ");
-        for (Integer question : questionList.keySet()) {
-            query.append(" AND question = ").append(question).append(" AND employeeAnswer >= ").append(questionList.get(question));
+        List<CandidateOutputDTO> result = new ArrayList<>();
+        for (Employee employee : fittingEmployees) {
+            CandidateOutputDTO dto = new CandidateOutputDTO(100, "", employee.viewEmployeeDetails());
+            result.add(dto);
         }
-        List<Employee> employeesFit = null; //todo:implement repository.runQuery(query);
-        return employeesFit;
+        return result;
     }
 
-    private List<Employee> getAllEmployees() {
-        return new LinkedList<>();
-    }
+    private Map<Long, Integer> getQuestionsBySearchString(String searchQuery) {
 
-    private Map<Integer, Integer> getQuestionsBySearchString(String searchQuery1) {
-
-        Map<Integer, Integer> questionAnswerMap = new HashMap<>();
-        String[] pairs = searchQuery1.split(",");
+        Map<Long, Integer> questionAnswerMap = new HashMap<>();
+        String[] pairs = searchQuery.split(",");
         for (String pair : pairs) {
             String[] spllitted = pair.split(":");
-            Integer questionIdx = Integer.parseInt(spllitted[0]);
+            Long questionIdx = Long.parseLong(spllitted[0]);
             Integer answerIdx = Integer.parseInt(spllitted[1]);
             questionAnswerMap.put(questionIdx, answerIdx);
         }
         return questionAnswerMap;
+    }
+
+    public static <T> Set<T> getCommonElements(Collection<? extends Collection<T>> collections) {
+        Set<T> common = new LinkedHashSet<T>();
+        if (!collections.isEmpty()) {
+            Iterator<? extends Collection<T>> iterator = collections.iterator();
+            common.addAll(iterator.next());
+            while (iterator.hasNext()) {
+                common.retainAll(iterator.next());
+            }
+        }
+        return common;
     }
 }
