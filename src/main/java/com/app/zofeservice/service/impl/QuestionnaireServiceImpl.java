@@ -18,6 +18,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created By Shameera.A on 1/25/2020
@@ -45,17 +46,21 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
         Map<Long, Integer> questionList = getQuestionsBySearchString(searchQuery);
         List<Employee> fittingEmployees = getAllFittingCandidates(questionList);
 
-        if (fittingEmployees.size() >= MINIMAL_RESULTS_SIZE) {
+        if (fittingEmployees.size() >= MINIMAL_RESULTS_SIZE) {  /* why do you need this kind of approach ??*/
             return getCandidateOutputDTOs(fittingEmployees);
         }
 
-        /*Should fix adding same employee twice*/
-
         List<CandidateOutputDTO> candidateOutput = getCandidateOutputDTOs(fittingEmployees);
         List<CandidateOutputDTO> nonFittingEmployeesByRank = getNonFittingEmployeesByRank(questionList);
-        nonFittingEmployeesByRank.removeAll(candidateOutput);
-        candidateOutput.addAll(nonFittingEmployeesByRank);
-        return candidateOutput;
+
+        //List<CandidateOutputDTO> collect = candidateOutput.stream().filter(c -> !nonFittingEmployeesByRank.contains(c.getEmployee())).collect(Collectors.toList());
+        /*for(CandidateOutputDTO i : candidateOutput) {
+            for(CandidateOutputDTO k: nonFittingEmployeesByRank){
+
+            }
+        }*/
+
+        return nonFittingEmployeesByRank;
     }
 
     private List<Employee> getAllFittingCandidates(Map<Long, Integer> questionList) {
@@ -85,7 +90,7 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
                     }
                 }
             }
-            CandidateOutputDTO outputDto = new CandidateOutputDTO(level, "", employee.viewEmployeeDetails());
+            CandidateOutputDTO outputDto = new CandidateOutputDTO(level, "000", employee.viewEmployeeDetails());
             result.add(outputDto);
         }
         return result;
@@ -94,7 +99,7 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
     private List<CandidateOutputDTO> getCandidateOutputDTOs(List<Employee> fittingEmployees) {
         List<CandidateOutputDTO> result = new ArrayList<>();
         for (Employee employee : fittingEmployees) {
-            CandidateOutputDTO dto = new CandidateOutputDTO(100, "", employee.viewEmployeeDetails());
+            CandidateOutputDTO dto = new CandidateOutputDTO(100, "000", employee.viewEmployeeDetails());
             result.add(dto);
         }
         return result;

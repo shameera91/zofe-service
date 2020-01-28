@@ -1,6 +1,7 @@
 package com.app.zofeservice.service.impl;
 
 import com.app.zofeservice.dto.QuestionInputDTO;
+import com.app.zofeservice.dto.QuestionOutputDto;
 import com.app.zofeservice.modal.Answer;
 import com.app.zofeservice.modal.Question;
 import com.app.zofeservice.repository.AnswerRepository;
@@ -27,8 +28,17 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public List<Question> getAllQuestions() {
-        return questionRepository.findAll();
+    public List<QuestionOutputDto> getAllQuestions() {
+        List<QuestionOutputDto> result=new ArrayList<>();
+        List<Question> all = questionRepository.findAll();
+        for (Question question:all){
+            QuestionOutputDto outputDto = new QuestionOutputDto();
+            outputDto.setId(question.getId());
+            outputDto.setQuestion(question.getQuestion());
+            outputDto.setAnswers(question.getAnswers());
+            result.add(outputDto);
+        }
+        return result;
     }
 
     @Override

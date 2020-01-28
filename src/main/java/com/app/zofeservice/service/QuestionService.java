@@ -1,6 +1,7 @@
 package com.app.zofeservice.service;
 
 import com.app.zofeservice.dto.QuestionInputDTO;
+import com.app.zofeservice.dto.QuestionOutputDto;
 import com.app.zofeservice.modal.Question;
 
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
  */
 public interface QuestionService {
 
-    List<Question> getAllQuestions();  /* replace with output dto*/
+    List<QuestionOutputDto> getAllQuestions();
 
     Question getQuestionById(int questionIdx);
 
