@@ -1,6 +1,7 @@
 package com.app.zofeservice.service;
 
 import com.app.zofeservice.dto.CandidateOutputDTO;
+import com.app.zofeservice.dto.QuestionnaireAnswerInputDTO;
 
 import java.util.List;
 
@@ -11,4 +12,5 @@ public interface QuestionnaireService {
 
     List<CandidateOutputDTO> getMatchingCandidatesByAnswerIndex(String searchQuery);
 
+    void saveQuestionsAndAnswersByEmployee(QuestionnaireAnswerInputDTO answerInputDTO);
 }

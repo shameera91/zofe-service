@@ -1,11 +1,14 @@
 package com.app.zofeservice.service.impl;
 
 import com.app.zofeservice.dto.CandidateOutputDTO;
+import com.app.zofeservice.dto.QuestionnaireAnswerInputDTO;
 import com.app.zofeservice.exception.ResourceNotFoundException;
 import com.app.zofeservice.modal.Employee;
+import com.app.zofeservice.modal.Question;
+import com.app.zofeservice.modal.QuestionnaireAnswers;
 import com.app.zofeservice.repository.EmployerRepository;
+import com.app.zofeservice.repository.QuestionRepository;
 import com.app.zofeservice.repository.QuestionnaireAnswerRepository;
-import com.app.zofeservice.service.QuestionService;
 import com.app.zofeservice.service.QuestionnaireService;
 import com.google.common.collect.Lists;
 import org.springframework.stereotype.Service;
@@ -18,7 +21,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Created By Shameera.A on 1/25/2020
@@ -29,15 +31,33 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
     private static final int MINIMAL_RESULTS_SIZE = 10;
     private static final int FACTOR_REDUCTION_ON_MORE = 2;
     private static final double FACTOR_MULTIPLICATION_ON_LESS = 0.8;
+
     private final QuestionnaireAnswerRepository questionnaireAnswerRepository;
-    private final QuestionService questionService;
+    private final QuestionRepository questionRepository;
     private final EmployerRepository employerRepository;
 
     public QuestionnaireServiceImpl(QuestionnaireAnswerRepository questionnaireAnswerRepository,
-                                    QuestionService questionService, EmployerRepository employerRepository) {
+                                    QuestionRepository questionRepository, EmployerRepository employerRepository) {
         this.questionnaireAnswerRepository = questionnaireAnswerRepository;
-        this.questionService = questionService;
+        this.questionRepository = questionRepository;
         this.employerRepository = employerRepository;
+    }
+
+    @Override
+    public void saveQuestionsAndAnswersByEmployee(QuestionnaireAnswerInputDTO answerInputDTO) {
+        List<QuestionnaireAnswers> result = new ArrayList<>();
+        Employee employee = employerRepository.findById(answerInputDTO.getEmployeeId())
+                .orElseThrow(() -> new ResourceNotFoundException("No employee found for given id"));
+
+        Map<Long, Integer> qnaMap = this.getQuestionsBySearchString(answerInputDTO.getQuestionAnswers());
+        for (Long qId : qnaMap.keySet()) {
+            Question question = questionRepository.findById(qId)
+                    .orElseThrow(() -> new ResourceNotFoundException("No question found for given id"));
+            QuestionnaireAnswers inputElement = QuestionnaireAnswers.builder().employee(employee)
+                    .question(question).empAnswerScore(qnaMap.get(qId)).build();
+            result.add(inputElement);
+        }
+        questionnaireAnswerRepository.saveAll(result);
     }
 
     @Override
