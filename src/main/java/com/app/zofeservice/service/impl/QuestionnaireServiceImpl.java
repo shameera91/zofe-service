@@ -46,14 +46,17 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
     @Override
     public void saveQuestionsAndAnswersByEmployee(QuestionnaireAnswerInputDTO answerInputDTO) {
         List<QuestionnaireAnswers> result = new ArrayList<>();
-        Employee employee = employerRepository.findById(answerInputDTO.getEmployeeId())
-                .orElseThrow(() -> new ResourceNotFoundException("No employee found for given id"));
+        /*Employee employee = employerRepository.findById(answerInputDTO.getEmployeeId())
+                .orElseThrow(() -> new ResourceNotFoundException("No employee found for given id"));*/
 
+        Employee employeeInputObject = Employee.builder().name(answerInputDTO.getEmpName()).email(answerInputDTO.getEmpEmail())
+                .phone(answerInputDTO.getEmpPhone()).build();
+        Employee savedEmployee = employerRepository.save(employeeInputObject);
         Map<Long, Integer> qnaMap = this.getQuestionsBySearchString(answerInputDTO.getQuestionAnswers());
         for (Long qId : qnaMap.keySet()) {
             Question question = questionRepository.findById(qId)
                     .orElseThrow(() -> new ResourceNotFoundException("No question found for given id"));
-            QuestionnaireAnswers inputElement = QuestionnaireAnswers.builder().employee(employee)
+            QuestionnaireAnswers inputElement = QuestionnaireAnswers.builder().employee(savedEmployee)
                     .question(question).empAnswerScore(qnaMap.get(qId)).build();
             result.add(inputElement);
         }
@@ -73,13 +76,6 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
         List<CandidateOutputDTO> candidateOutput = getCandidateOutputDTOs(fittingEmployees);
         List<CandidateOutputDTO> nonFittingEmployeesByRank = getNonFittingEmployeesByRank(questionList);
 
-        //List<CandidateOutputDTO> collect = candidateOutput.stream().filter(c -> !nonFittingEmployeesByRank.contains(c.getEmployee())).collect(Collectors.toList());
-        /*for(CandidateOutputDTO i : candidateOutput) {
-            for(CandidateOutputDTO k: nonFittingEmployeesByRank){
-
-            }
-        }*/
-
         return nonFittingEmployeesByRank;
     }
 
@@ -94,14 +90,14 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
         return Lists.newArrayList(commonElements);
     }
 
-    private List<CandidateOutputDTO> getNonFittingEmployeesByRank(Map<Long, Integer> questionList) {
+    private List<CandidateOutputDTO> getNonFittingEmployeesByRank(Map<Long, Integer> questionList) {  /* Assumption - all employees answer all questions*/
         List<CandidateOutputDTO> result = new ArrayList<>();
         List<Employee> allEmployees = employerRepository.findAll();
         for (Employee employee : allEmployees) {
             int level = 100;
             for (Long questionId : questionList.keySet()) {
-                Integer userAns = questionnaireAnswerRepository
-                        .getQuestionAnswer(questionId, employee.getId()).orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
+                Integer userAns = questionnaireAnswerRepository.getQuestionAnswer(questionId, employee.getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Employee doesn't answer this question"));
                 if (userAns > questionList.get(questionId)) {
                     level -= FACTOR_REDUCTION_ON_MORE;
                 } else {

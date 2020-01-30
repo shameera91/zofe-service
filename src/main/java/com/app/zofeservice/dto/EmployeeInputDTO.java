@@ -8,16 +8,14 @@ import lombok.Setter;
 /**
  * Created By Shameera.A on 1/29/2020
  */
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class QuestionnaireAnswerInputDTO {
+public class EmployeeInputDTO {
 
-    //private long employeeId;
-    private String empName;
-    private String empPhone;
-    private String empEmail;
-    private String questionAnswers;
-
+    private String name;
+    private String phone;
+    private String email;
 }
